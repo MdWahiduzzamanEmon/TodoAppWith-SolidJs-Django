@@ -3,15 +3,10 @@ import { Alert, Button, Container, Form } from "solid-bootstrap";
 import { createEffect, createMemo, createResource, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 import Styles from "../../Authentication/Authentication.module.css";
+import { isError, setIsError } from "../../Shared/IsError/IsError";
 
 let email = "wahedemon09@gmail.com";
 let password = "123456";
-
-export const [isError, setIsError] = createSignal({
-    isError: false,
-    errorMessage: ""
-});
-
 
 
 const Login = () => {
@@ -67,7 +62,8 @@ const Login = () => {
                 setIsError({
                     isError: false,
                     errorMessage: ""
-                })}
+                })
+            }
                 , 3000)
 
         }

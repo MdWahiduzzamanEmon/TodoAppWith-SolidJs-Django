@@ -1,25 +1,12 @@
-import { Button, Card, Col, Container, Form, Row, Stack } from "solid-bootstrap";
+import { Alert, Button, Card, Col, Container, Form, Row, Stack } from "solid-bootstrap";
 import { createMemo, createSignal, For, onCleanup, Show } from "solid-js";
 import { createStore } from "solid-js/store";
+import { isError, setIsError } from "../../Shared/IsError/IsError";
+import TodoCards from "../TodoCards/TodoCards";
+import { setTodoList, todoList } from "../TodoListStore/TodoListStore";
 
 
 const Home = () => {
-
-    const [todoList, setTodoList] = createStore(
-        [
-            {
-                id: 1,
-                title: "Todo 1",
-                description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod."
-
-            },
-            {
-                id: 2,
-                title: "Todo 2",
-                description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quod."
-            }
-        ]
-    )
 
     const [todo, setTodo] = createSignal("");
     const [description, setDescription] = createSignal("");
@@ -28,9 +15,20 @@ const Home = () => {
 
         e.preventDefault();
 
-        console.log(todo(), description());
+        // console.log(todo(), description());
         if (todo() === "" || description() === "") {
-            alert("Please fill all the fields.");
+            setIsError({
+                isError: true,
+                errorMessage: "Please fill all the fields."
+            })
+
+            setTimeout(() => {
+                setIsError({
+                    isError: false,
+                    errorMessage: ""
+                })
+
+            }, 3000)
             return;
         }
         setTodoList([...todoList, {
@@ -43,21 +41,6 @@ const Home = () => {
 
     }
 
-    const handleDeleteTodo = (item) => {
-        // console.log(item, i);
-        const newTodoList = todoList.filter((todo) => todo.id !== item.id);
-        setTodoList(newTodoList);
-
-    }
-
-    const handleEditTodo = (item) => {
-        // console.log(item);
-        setTodo(item.title);
-        setDescription(item.description);
-
-        const newTodoList = todoList.filter((todo) => todo.id !== item.id);
-        setTodoList(newTodoList);
-    }
     const randomColor = [
         "#FF0000",
         "#FF7F00",
@@ -76,7 +59,7 @@ const Home = () => {
     const [color, setColor] = createSignal(null);
 
     setInterval(() => {
-        const gradient = `linear-gradient(-145deg, ${randomColor[Math.floor(Math.random() * randomColor.length)]} 0%, ${randomColor[Math.floor(Math.random() * randomColor.length)]} 100%)`;
+        const gradient = `linear-gradient(-45deg, ${randomColor[Math.floor(Math.random() * randomColor.length)]} 0%, ${randomColor[Math.floor(Math.random() * randomColor.length)]} 100%)`;
         //    console.log(gradient);
         setColor(gradient);
     }, 2500);
@@ -87,14 +70,36 @@ const Home = () => {
 
     // console.log(color());
 
+    const errorFunction = createMemo(() => {
+        if (isError().isError) {
+            return (
+                <Alert variant={"danger"} show={isError().isError}
+                    class="text-center mt-3"
+                >
+                    <Alert.Heading class="fs-6">
+                        {isError().errorMessage}
+                    </Alert.Heading>
+                </Alert>
+            )
+        }
+    })
+
 
 
     return (
         <main style={{
             //random gradient background color generator: https://cssgradient.io/
-            background: color() || "linear-gradient(-145deg, #FF0000 0%, #FF7F00 100%)",
+            background: color() || "linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab)",
+            backgroundSize: "400% 400%",
+            animation: "gradient 15s ease infinite",
+            transition: "all 0.5s ease-in-out"
         }}>
+
+
             <Container class="vh-100 overflow-auto">
+                {
+                    errorFunction()
+                }
                 <section class="d-flex d-flex justify-content-center align-items-start pt-5 h-100">
                     <Stack class="w-75">
                         <Card class="p-2  bg-dark text-light mb-2">
@@ -131,38 +136,10 @@ const Home = () => {
                             </Card>
                         </Show>
 
-                        <Row>
-
-                            <For each={todoList}>
-                                {(item) => (
-                                    <Col class="col-12 col-md-6 col-lg-4">
-                                        <Card class="p-4 bg-dark text-light mb-2 position-relative" key={item.id}
-                                        >
-                                            <Card.Title>{item.title}</Card.Title>
-                                            <Card.Text>{item.description}</Card.Text>
-                                            <Button class="btn btn-danger" onClick={() => {
-                                                handleDeleteTodo(item)
-                                            }}>Delete</Button>
-                                            <div class="
-                                                        position-absolute
-                                                        top-0
-                                                        end-0
-                                                        mt-2
-                                                        me-2
-                                                            "
-                                            >
-                                                <Button class="btn btn-success"
-                                                    onClick={() => {
-                                                        handleEditTodo(item)
-                                                    }}
-                                                >Edit</Button>
-                                            </div>
-                                        </Card>
-                                    </Col>
-                                )}
-                            </For>
-
-                        </Row>
+                        <TodoCards
+                            setDescription={setDescription}
+                            setTodo={setTodo}
+                        />
                     </Stack>
                 </section>
             </Container>
