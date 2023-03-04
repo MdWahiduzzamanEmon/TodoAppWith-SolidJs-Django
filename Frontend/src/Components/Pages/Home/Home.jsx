@@ -1,64 +1,27 @@
-import { Alert, Button, Card, Col, Container, Form, Row, Stack } from "solid-bootstrap";
+import { useNavigate } from "@solidjs/router";
+import { Alert, Button, Card, Container, Stack } from "solid-bootstrap";
 import { createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { createStore } from "solid-js/store";
-import { isError, setIsError } from "../../Shared/IsError/IsError";
+import { isError } from "../../Shared/IsError/IsError";
+import TodoAddForm from "../TodoAddForm/TodoAddForm";
 import TodoCards from "../TodoCards/TodoCards";
-import { setTodoList, todoList } from "../TodoListStore/TodoListStore";
+import { todoList } from "../TodoListStore/TodoListStore";
 
 
 const Home = () => {
-
+    const navigate = useNavigate();
     const [todo, setTodo] = createSignal("");
     const [description, setDescription] = createSignal("");
 
-    const handleTodoAdd = (e) => {
-
-        e.preventDefault();
-
-        // console.log(todo(), description());
-        if (todo() === "" || description() === "") {
-            setIsError({
-                isError: true,
-                errorMessage: "Please fill all the fields."
-            })
-
-            setTimeout(() => {
-                setIsError({
-                    isError: false,
-                    errorMessage: ""
-                })
-
-            }, 3000)
-            return;
-        }
-        setTodoList([...todoList, {
-            id: todoList.length + 1,
-            title: todo(),
-            description: description()
-        }])
-        setTodo("");
-        setDescription("");
-
-    }
-
-    const randomColor = [
-        "#FF0000",
-        "#FF7F00",
-        "#FFFF00",
-        "#00FF00",
-        "#0000FF",
-        "#4B0082",
-        "#9400D3",
-        "#FF0000",
-        "#FF7F00",
-        "#FFFF00",
-        "#00FF00",
-        "#0000FF",
-    ]
-
+    const randomColor = [];
     const [color, setColor] = createSignal(null);
 
     setInterval(() => {
+        //generate random gradient color
+        for (let i = 0; i < 6; i++) {
+            const randomColorCode = Math.floor(Math.random() * 16777215).toString(16);
+            randomColor.push(`#${randomColorCode}`);
+        }
+
         const gradient = `linear-gradient(-45deg, ${randomColor[Math.floor(Math.random() * randomColor.length)]} 0%, ${randomColor[Math.floor(Math.random() * randomColor.length)]} 100%)`;
         //    console.log(gradient);
         setColor(gradient);
@@ -96,38 +59,29 @@ const Home = () => {
         }}>
 
 
-            <Container class="vh-100 overflow-auto">
+            <Container class="vh-100 overflow-auto position-relative">
                 {
                     errorFunction()
                 }
                 <section class="d-flex d-flex justify-content-center align-items-start pt-5 h-100">
                     <Stack class="w-75">
-                        <Card class="p-2  bg-dark text-light mb-2">
-                            <Form onSubmit={handleTodoAdd}>
-                                <Form.Group class="mb-2">
-                                    <Form.Label>Todo</Form.Label>
-                                    <Form.Control type="text" placeholder="Enter Todo"
-                                        value={todo()}
-                                        onInput={(e) => setTodo(e.target.value)}
-                                    />
-                                </Form.Group>
-                                <Form.Group>
-                                    <Form.Label>Description</Form.Label>
-                                    <Form.Control type="text" placeholder="Enter Description"
-                                        value={description()}
-                                        onInput={(e) => setDescription(e.target.value)}
-                                    />
-                                </Form.Group>
+                        {/* //add todo  */}
+                        <TodoAddForm
+                            todo={todo}
+                            setTodo={setTodo}
+                            description={description}
+                            setDescription={setDescription}
 
-                                <Button type="submit" class="mt-1">Submit</Button>
-                            </Form>
-                        </Card>
+                        />
+
+                        {/* //not found todo */}
                         <Show when={todoList.length === 0}>
                             <Card class="p-4 bg-dark text-light mb-2">
                                 <Card.Title>No Todo Found</Card.Title>
                             </Card>
                         </Show>
 
+                        {/* //total todo */}
                         <Show when={todoList.length > 0}>
                             <Card class="p-4 bg-dark text-light mb-2">
                                 <Card.Title>
@@ -136,12 +90,27 @@ const Home = () => {
                             </Card>
                         </Show>
 
+                        {/* //todo cards  */}
+
                         <TodoCards
                             setDescription={setDescription}
                             setTodo={setTodo}
                         />
                     </Stack>
                 </section>
+                //logout
+
+                <Button
+                    class="position-absolute top-0 end-0 m-3"
+                    variant="danger"
+                    onClick={() => {
+                        localStorage.setItem("isAuthenticated", false);
+                        navigate("/login");
+                    }}
+                >
+                    Sign Out
+                </Button>
+
             </Container>
         </main >
     );
